@@ -1,35 +1,34 @@
 package com.fengluoqiuwu.forced_banner.block_entities;
 
 import com.fengluoqiuwu.forced_banner.Config;
-import com.mojang.datafixers.util.Pair;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BannerBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.WallBannerBlock;
-import net.minecraft.block.entity.BannerPattern;
-import net.minecraft.client.model.*;
+import net.minecraft.block.entity.BannerBlockEntity;
+import net.minecraft.client.model.ModelData;
+import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.model.ModelPartBuilder;
+import net.minecraft.client.model.ModelPartData;
+import net.minecraft.client.model.ModelTransform;
+import net.minecraft.client.model.TexturedModelData;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.block.entity.BannerBlockEntity;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.component.type.BannerPatternsComponent;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.math.*;
 
-import java.util.List;
-
 @Environment(EnvType.CLIENT)
 public class CustomBannerBlockEntityRenderer implements BlockEntityRenderer<BannerBlockEntity> {
-
     private static final int WIDTH = 20;
     private static final int HEIGHT = 40;
     private static final int ROTATIONS = 16;
@@ -57,7 +56,6 @@ public class CustomBannerBlockEntityRenderer implements BlockEntityRenderer<Bann
     }
 
     public void render(BannerBlockEntity bannerBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j) {
-        List<Pair<RegistryEntry<BannerPattern>, DyeColor>> list = bannerBlockEntity.getPatterns();
         float g = 0.6666667F;
         boolean bl = bannerBlockEntity.getWorld() == null;
         matrixStack.push();
@@ -92,24 +90,30 @@ public class CustomBannerBlockEntityRenderer implements BlockEntityRenderer<Bann
         float k = ((float)Math.floorMod((long)(blockPos.getX() * 7 + blockPos.getY() * 9 + blockPos.getZ() * 13) + l, 100L) + f) / 100.0F;
         this.banner.pitch = (-0.0125F + 0.01F * MathHelper.cos(((float)Math.PI * 2F) * k)) * (float)Math.PI;
         this.banner.pivotY = -32.0F;
-        renderCanvas(matrixStack, vertexConsumerProvider, i, j, this.banner, ModelLoader.BANNER_BASE, true, list);
+        renderCanvas(matrixStack, vertexConsumerProvider, i, j, this.banner, ModelLoader.BANNER_BASE, true, bannerBlockEntity.getColorForState(), bannerBlockEntity.getPatterns());
         matrixStack.pop();
         matrixStack.pop();
     }
 
-    public static void renderCanvas(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, ModelPart canvas, SpriteIdentifier baseSprite, boolean isBanner, List<Pair<RegistryEntry<BannerPattern>, DyeColor>> patterns) {
-        renderCanvas(matrices, vertexConsumers, light, overlay, canvas, baseSprite, isBanner, patterns, false);
+    public static void renderCanvas(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, ModelPart canvas, SpriteIdentifier baseSprite, boolean isBanner, DyeColor color, BannerPatternsComponent patterns) {
+        renderCanvas(matrices, vertexConsumers, light, overlay, canvas, baseSprite, isBanner, color, patterns, false);
     }
 
-    public static void renderCanvas(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, ModelPart canvas, SpriteIdentifier baseSprite, boolean isBanner, List<Pair<RegistryEntry<BannerPattern>, DyeColor>> patterns, boolean glint) {
+    public static void renderCanvas(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, ModelPart canvas, SpriteIdentifier baseSprite, boolean isBanner, DyeColor color, BannerPatternsComponent patterns, boolean glint) {
         canvas.render(matrices, baseSprite.getVertexConsumer(vertexConsumers, RenderLayer::getEntitySolid, glint), light, overlay);
+        renderLayer(matrices, vertexConsumers, light, overlay, canvas, isBanner ? TexturedRenderLayers.BANNER_BASE : TexturedRenderLayers.SHIELD_BASE, color);
 
-        for(int i = 0; i < 17 && i < patterns.size(); ++i) {
-            Pair<RegistryEntry<BannerPattern>, DyeColor> pair = (Pair)patterns.get(i);
-            float[] fs = ((DyeColor)pair.getSecond()).getColorComponents();
-            ((RegistryEntry)pair.getFirst()).getKey().map((key) -> isBanner ? TexturedRenderLayers.getBannerPatternTextureId((RegistryKey<BannerPattern>) key) : TexturedRenderLayers.getShieldPatternTextureId((RegistryKey<BannerPattern>) key)).ifPresent((sprite) -> canvas.render(matrices, ((SpriteIdentifier)sprite).getVertexConsumer(vertexConsumers, RenderLayer::getEntityNoOutline), light, overlay, fs[0], fs[1], fs[2], 1.0F));
+        for(int i = 0; i < 16 && i < patterns.layers().size(); ++i) {
+            BannerPatternsComponent.Layer layer = (BannerPatternsComponent.Layer)patterns.layers().get(i);
+            SpriteIdentifier spriteIdentifier = isBanner ? TexturedRenderLayers.getBannerPatternTextureId(layer.pattern()) : TexturedRenderLayers.getShieldPatternTextureId(layer.pattern());
+            renderLayer(matrices, vertexConsumers, light, overlay, canvas, spriteIdentifier, layer.color());
         }
 
+    }
+
+    private static void renderLayer(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, ModelPart canvas, SpriteIdentifier textureId, DyeColor color) {
+        float[] fs = color.getColorComponents();
+        canvas.render(matrices, textureId.getVertexConsumer(vertexConsumers, RenderLayer::getEntityNoOutline), light, overlay, fs[0], fs[1], fs[2], 1.0F);
     }
 
     @Override

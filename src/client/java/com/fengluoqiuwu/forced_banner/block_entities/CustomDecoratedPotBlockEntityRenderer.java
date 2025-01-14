@@ -2,12 +2,15 @@ package com.fengluoqiuwu.forced_banner.block_entities;
 
 import java.util.EnumSet;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.fengluoqiuwu.forced_banner.Config;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.DecoratedPotPatterns;
 import net.minecraft.block.entity.DecoratedPotBlockEntity;
+import net.minecraft.block.entity.Sherds;
+import net.minecraft.block.entity.DecoratedPotBlockEntity.WobbleType;
 import net.minecraft.client.model.Dilation;
 import net.minecraft.client.model.ModelData;
 import net.minecraft.client.model.ModelPart;
@@ -27,6 +30,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +51,7 @@ public class CustomDecoratedPotBlockEntityRenderer implements BlockEntityRendere
     private final ModelPart top;
     private final ModelPart bottom;
     private final SpriteIdentifier baseTexture;
+    private static final float field_46728 = 0.125F;
 
     public CustomDecoratedPotBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
         this.baseTexture = (SpriteIdentifier)Objects.requireNonNull(TexturedRenderLayers.getDecoratedPotPatternTextureId(DecoratedPotPatterns.DECORATED_POT_BASE_KEY));
@@ -85,13 +90,15 @@ public class CustomDecoratedPotBlockEntityRenderer implements BlockEntityRendere
     }
 
     @Nullable
-    private static SpriteIdentifier getTextureIdFromSherd(Item item) {
-        SpriteIdentifier spriteIdentifier = TexturedRenderLayers.getDecoratedPotPatternTextureId(DecoratedPotPatterns.fromSherd(item));
-        if (spriteIdentifier == null) {
-            spriteIdentifier = TexturedRenderLayers.getDecoratedPotPatternTextureId(DecoratedPotPatterns.fromSherd(Items.BRICK));
+    private static SpriteIdentifier getTextureIdFromSherd(Optional<Item> optional) {
+        if (optional.isPresent()) {
+            SpriteIdentifier spriteIdentifier = TexturedRenderLayers.getDecoratedPotPatternTextureId(DecoratedPotPatterns.fromSherd((Item)optional.get()));
+            if (spriteIdentifier != null) {
+                return spriteIdentifier;
+            }
         }
 
-        return spriteIdentifier;
+        return TexturedRenderLayers.getDecoratedPotPatternTextureId(DecoratedPotPatterns.fromSherd(Items.BRICK));
     }
 
     public void render(DecoratedPotBlockEntity decoratedPotBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j) {
@@ -100,11 +107,30 @@ public class CustomDecoratedPotBlockEntityRenderer implements BlockEntityRendere
         matrixStack.translate((double)0.5F, (double)0.0F, (double)0.5F);
         matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F - direction.asRotation()));
         matrixStack.translate((double)-0.5F, (double)0.0F, (double)-0.5F);
+        DecoratedPotBlockEntity.WobbleType wobbleType = decoratedPotBlockEntity.lastWobbleType;
+        if (wobbleType != null && decoratedPotBlockEntity.getWorld() != null) {
+            float g = ((float)(decoratedPotBlockEntity.getWorld().getTime() - decoratedPotBlockEntity.lastWobbleTime) + f) / (float)wobbleType.lengthInTicks;
+            if (g >= 0.0F && g <= 1.0F) {
+                if (wobbleType == WobbleType.POSITIVE) {
+                    float h = 0.015625F;
+                    float k = g * ((float)Math.PI * 2F);
+                    float l = -1.5F * (MathHelper.cos(k) + 0.5F) * MathHelper.sin(k / 2.0F);
+                    matrixStack.multiply(RotationAxis.POSITIVE_X.rotation(l * 0.015625F), 0.5F, 0.0F, 0.5F);
+                    float m = MathHelper.sin(k);
+                    matrixStack.multiply(RotationAxis.POSITIVE_Z.rotation(m * 0.015625F), 0.5F, 0.0F, 0.5F);
+                } else {
+                    float h = MathHelper.sin(-g * 3.0F * (float)Math.PI) * 0.125F;
+                    float k = 1.0F - g;
+                    matrixStack.multiply(RotationAxis.POSITIVE_Y.rotation(h * k), 0.5F, 0.0F, 0.5F);
+                }
+            }
+        }
+
         VertexConsumer vertexConsumer = this.baseTexture.getVertexConsumer(vertexConsumerProvider, RenderLayer::getEntitySolid);
         this.neck.render(matrixStack, vertexConsumer, i, j);
         this.top.render(matrixStack, vertexConsumer, i, j);
         this.bottom.render(matrixStack, vertexConsumer, i, j);
-        DecoratedPotBlockEntity.Sherds sherds = decoratedPotBlockEntity.getSherds();
+        Sherds sherds = decoratedPotBlockEntity.getSherds();
         this.renderDecoratedSide(this.front, matrixStack, vertexConsumerProvider, i, j, getTextureIdFromSherd(sherds.front()));
         this.renderDecoratedSide(this.back, matrixStack, vertexConsumerProvider, i, j, getTextureIdFromSherd(sherds.back()));
         this.renderDecoratedSide(this.left, matrixStack, vertexConsumerProvider, i, j, getTextureIdFromSherd(sherds.left()));
@@ -114,7 +140,7 @@ public class CustomDecoratedPotBlockEntityRenderer implements BlockEntityRendere
 
     private void renderDecoratedSide(ModelPart part, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, @Nullable SpriteIdentifier textureId) {
         if (textureId == null) {
-            textureId = getTextureIdFromSherd(Items.BRICK);
+            textureId = getTextureIdFromSherd(Optional.empty());
         }
 
         if (textureId != null) {

@@ -3,9 +3,7 @@ package com.fengluoqiuwu.forced_banner.block_entities;
 import com.fengluoqiuwu.forced_banner.Config;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.mojang.authlib.GameProfile;
 import java.util.Map;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.AbstractSkullBlock;
@@ -30,6 +28,7 @@ import net.minecraft.client.render.entity.model.SkullEntityModel;
 import net.minecraft.client.texture.PlayerSkinProvider;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Direction;
@@ -94,11 +93,11 @@ public class CustomSkullBlockEntityRenderer implements BlockEntityRenderer<Skull
         matrices.pop();
     }
 
-    public static RenderLayer getRenderLayer(SkullBlock.SkullType type, @Nullable GameProfile profile) {
+    public static RenderLayer getRenderLayer(SkullBlock.SkullType type, @Nullable ProfileComponent profile) {
         Identifier identifier = (Identifier)TEXTURES.get(type);
         if (type == Type.PLAYER && profile != null) {
             PlayerSkinProvider playerSkinProvider = MinecraftClient.getInstance().getSkinProvider();
-            return RenderLayer.getEntityTranslucent(playerSkinProvider.getSkinTextures(profile).texture());
+            return RenderLayer.getEntityTranslucent(playerSkinProvider.getSkinTextures(profile.gameProfile()).texture());
         } else {
             return RenderLayer.getEntityCutoutNoCullZOffset(identifier);
         }
