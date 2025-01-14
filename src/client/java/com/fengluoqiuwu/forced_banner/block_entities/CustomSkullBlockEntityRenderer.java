@@ -4,10 +4,7 @@ import com.fengluoqiuwu.forced_banner.Config;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import java.util.Map;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.block.AbstractSkullBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SkullBlock;
@@ -27,17 +24,16 @@ import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.client.render.entity.model.EntityModelLoader;
 import net.minecraft.client.render.entity.model.PiglinHeadEntityModel;
 import net.minecraft.client.render.entity.model.SkullEntityModel;
+import net.minecraft.client.texture.PlayerSkinProvider;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
-import net.minecraft.util.Uuids;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationPropertyHelper;
 import org.jetbrains.annotations.Nullable;
 
-@Environment(EnvType.CLIENT)
-public class CustomSkullBlockEntityRenderer implements BlockEntityRenderer<SkullBlockEntity> {
+class CustomSkullBlockEntityRenderer implements BlockEntityRenderer<SkullBlockEntity> {
     private final Map<SkullBlock.SkullType, SkullBlockEntityModel> MODELS;
     private static final Map<SkullBlock.SkullType, Identifier> TEXTURES = (Map)Util.make(Maps.newHashMap(), (map) -> {
         map.put(Type.SKELETON, new Identifier("textures/entity/skeleton/skeleton.png"));
@@ -97,9 +93,8 @@ public class CustomSkullBlockEntityRenderer implements BlockEntityRenderer<Skull
     public static RenderLayer getRenderLayer(SkullBlock.SkullType type, @Nullable GameProfile profile) {
         Identifier identifier = (Identifier)TEXTURES.get(type);
         if (type == Type.PLAYER && profile != null) {
-            MinecraftClient minecraftClient = MinecraftClient.getInstance();
-            Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = minecraftClient.getSkinProvider().getTextures(profile);
-            return map.containsKey(com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.SKIN) ? RenderLayer.getEntityTranslucent(minecraftClient.getSkinProvider().loadSkin((MinecraftProfileTexture)map.get(com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.SKIN), com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.SKIN)) : RenderLayer.getEntityCutoutNoCull(DefaultSkinHelper.getTexture(Uuids.getUuidFromProfile(profile)));
+            PlayerSkinProvider playerSkinProvider = MinecraftClient.getInstance().getSkinProvider();
+            return RenderLayer.getEntityTranslucent(playerSkinProvider.getSkinTextures(profile).texture());
         } else {
             return RenderLayer.getEntityCutoutNoCullZOffset(identifier);
         }
