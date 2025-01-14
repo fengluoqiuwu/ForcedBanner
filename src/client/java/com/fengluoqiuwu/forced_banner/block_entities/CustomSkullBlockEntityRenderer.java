@@ -39,12 +39,12 @@ import org.jetbrains.annotations.Nullable;
 public class CustomSkullBlockEntityRenderer implements BlockEntityRenderer<SkullBlockEntity> {
     private final Map<SkullBlock.SkullType, SkullBlockEntityModel> MODELS;
     private static final Map<SkullBlock.SkullType, Identifier> TEXTURES = (Map)Util.make(Maps.newHashMap(), (map) -> {
-        map.put(Type.SKELETON, new Identifier("textures/entity/skeleton/skeleton.png"));
-        map.put(Type.WITHER_SKELETON, new Identifier("textures/entity/skeleton/wither_skeleton.png"));
-        map.put(Type.ZOMBIE, new Identifier("textures/entity/zombie/zombie.png"));
-        map.put(Type.CREEPER, new Identifier("textures/entity/creeper/creeper.png"));
-        map.put(Type.DRAGON, new Identifier("textures/entity/enderdragon/dragon.png"));
-        map.put(Type.PIGLIN, new Identifier("textures/entity/piglin/piglin.png"));
+        map.put(Type.SKELETON, Identifier.ofVanilla("textures/entity/skeleton/skeleton.png"));
+        map.put(Type.WITHER_SKELETON, Identifier.ofVanilla("textures/entity/skeleton/wither_skeleton.png"));
+        map.put(Type.ZOMBIE, Identifier.ofVanilla("textures/entity/zombie/zombie.png"));
+        map.put(Type.CREEPER, Identifier.ofVanilla("textures/entity/creeper/creeper.png"));
+        map.put(Type.DRAGON, Identifier.ofVanilla("textures/entity/enderdragon/dragon.png"));
+        map.put(Type.PIGLIN, Identifier.ofVanilla("textures/entity/piglin/piglin.png"));
         map.put(Type.PLAYER, DefaultSkinHelper.getTexture());
     });
 
@@ -89,7 +89,7 @@ public class CustomSkullBlockEntityRenderer implements BlockEntityRenderer<Skull
         matrices.scale(-1.0F, -1.0F, 1.0F);
         VertexConsumer vertexConsumer = vertexConsumers.getBuffer(renderLayer);
         model.setHeadRotation(animationProgress, yaw, 0.0F);
-        model.render(matrices, vertexConsumer, light, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
+        model.render(matrices, vertexConsumer, light, OverlayTexture.DEFAULT_UV);
         matrices.pop();
     }
 

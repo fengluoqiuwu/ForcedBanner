@@ -112,8 +112,8 @@ public class CustomBannerBlockEntityRenderer implements BlockEntityRenderer<Bann
     }
 
     private static void renderLayer(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, ModelPart canvas, SpriteIdentifier textureId, DyeColor color) {
-        float[] fs = color.getColorComponents();
-        canvas.render(matrices, textureId.getVertexConsumer(vertexConsumers, RenderLayer::getEntityNoOutline), light, overlay, fs[0], fs[1], fs[2], 1.0F);
+        int i = color.getEntityColor();
+        canvas.render(matrices, textureId.getVertexConsumer(vertexConsumers, RenderLayer::getEntityNoOutline), light, overlay, i);
     }
 
     @Override

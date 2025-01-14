@@ -71,7 +71,7 @@ public class CustomBellBlockEntityRenderer implements BlockEntityRenderer<BellBl
     }
 
     static {
-        BELL_BODY_TEXTURE = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, new Identifier("entity/bell/bell_body"));
+        BELL_BODY_TEXTURE = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, Identifier.ofVanilla("entity/bell/bell_body"));
     }
 }
 

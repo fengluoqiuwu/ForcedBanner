@@ -177,7 +177,7 @@ public class CustomSignBlockEntityRenderer implements BlockEntityRenderer<SignBl
         }
     }
 
-    static int getColor(SignText sign) {
+    public static int getColor(SignText sign) {
         int i = sign.getColor().getSignColor();
         if (i == DyeColor.BLACK.getSignColor() && sign.isGlowing()) {
             return -988212;
@@ -213,8 +213,8 @@ public class CustomSignBlockEntityRenderer implements BlockEntityRenderer<SignBl
             this.stick = root.getChild("stick");
         }
 
-        public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, float red, float green, float blue, float alpha) {
-            this.root.render(matrices, vertices, light, overlay, red, green, blue, alpha);
+        public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
+            this.root.render(matrices, vertices, light, overlay, color);
         }
     }
 

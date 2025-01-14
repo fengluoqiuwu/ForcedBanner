@@ -1,7 +1,6 @@
 package com.fengluoqiuwu.forced_banner.block_entities;
 
 import java.util.EnumSet;
-import java.util.Objects;
 import java.util.Optional;
 
 import com.fengluoqiuwu.forced_banner.Config;
@@ -28,11 +27,9 @@ import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.Item;
-import net.minecraft.item.Items;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
-import org.jetbrains.annotations.Nullable;
 
 @Environment(EnvType.CLIENT)
 public class CustomDecoratedPotBlockEntityRenderer implements BlockEntityRenderer<DecoratedPotBlockEntity> {
@@ -50,11 +47,9 @@ public class CustomDecoratedPotBlockEntityRenderer implements BlockEntityRendere
     private final ModelPart right;
     private final ModelPart top;
     private final ModelPart bottom;
-    private final SpriteIdentifier baseTexture;
     private static final float field_46728 = 0.125F;
 
     public CustomDecoratedPotBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
-        this.baseTexture = (SpriteIdentifier)Objects.requireNonNull(TexturedRenderLayers.getDecoratedPotPatternTextureId(DecoratedPotPatterns.DECORATED_POT_BASE_KEY));
         ModelPart modelPart = context.getLayerModelPart(EntityModelLayers.DECORATED_POT_BASE);
         this.neck = modelPart.getChild("neck");
         this.top = modelPart.getChild("top");
@@ -89,16 +84,15 @@ public class CustomDecoratedPotBlockEntityRenderer implements BlockEntityRendere
         return TexturedModelData.of(modelData, 16, 16);
     }
 
-    @Nullable
-    private static SpriteIdentifier getTextureIdFromSherd(Optional<Item> optional) {
-        if (optional.isPresent()) {
-            SpriteIdentifier spriteIdentifier = TexturedRenderLayers.getDecoratedPotPatternTextureId(DecoratedPotPatterns.fromSherd((Item)optional.get()));
+    private static SpriteIdentifier getTextureIdFromSherd(Optional<Item> sherd) {
+        if (sherd.isPresent()) {
+            SpriteIdentifier spriteIdentifier = TexturedRenderLayers.getDecoratedPotPatternTextureId(DecoratedPotPatterns.fromSherd((Item)sherd.get()));
             if (spriteIdentifier != null) {
                 return spriteIdentifier;
             }
         }
 
-        return TexturedRenderLayers.getDecoratedPotPatternTextureId(DecoratedPotPatterns.fromSherd(Items.BRICK));
+        return TexturedRenderLayers.DECORATED_POT_SIDE;
     }
 
     public void render(DecoratedPotBlockEntity decoratedPotBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j) {
@@ -126,7 +120,7 @@ public class CustomDecoratedPotBlockEntityRenderer implements BlockEntityRendere
             }
         }
 
-        VertexConsumer vertexConsumer = this.baseTexture.getVertexConsumer(vertexConsumerProvider, RenderLayer::getEntitySolid);
+        VertexConsumer vertexConsumer = TexturedRenderLayers.DECORATED_POT_BASE.getVertexConsumer(vertexConsumerProvider, RenderLayer::getEntitySolid);
         this.neck.render(matrixStack, vertexConsumer, i, j);
         this.top.render(matrixStack, vertexConsumer, i, j);
         this.bottom.render(matrixStack, vertexConsumer, i, j);
@@ -138,15 +132,8 @@ public class CustomDecoratedPotBlockEntityRenderer implements BlockEntityRendere
         matrixStack.pop();
     }
 
-    private void renderDecoratedSide(ModelPart part, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, @Nullable SpriteIdentifier textureId) {
-        if (textureId == null) {
-            textureId = getTextureIdFromSherd(Optional.empty());
-        }
-
-        if (textureId != null) {
-            part.render(matrices, textureId.getVertexConsumer(vertexConsumers, RenderLayer::getEntitySolid), light, overlay);
-        }
-
+    private void renderDecoratedSide(ModelPart part, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, SpriteIdentifier textureId) {
+        part.render(matrices, textureId.getVertexConsumer(vertexConsumers, RenderLayer::getEntitySolid), light, overlay);
     }
 
     @Override

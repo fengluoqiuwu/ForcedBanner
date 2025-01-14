@@ -120,15 +120,15 @@ public class CustomHangingSignBlockEntityRenderer extends CustomSignBlockEntityR
             this.vChains.visible = false;
             this.normalChains.visible = true;
             if (!bl) {
-                boolean bl2 = (Boolean)state.get(Properties.ATTACHED);
+                boolean bl2 = (Boolean) state.get(Properties.ATTACHED);
                 this.normalChains.visible = !bl2;
                 this.vChains.visible = bl2;
             }
 
         }
 
-        public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, float red, float green, float blue, float alpha) {
-            this.root.render(matrices, vertices, light, overlay, red, green, blue, alpha);
+        public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
+            this.root.render(matrices, vertices, light, overlay, color);
         }
     }
 }
