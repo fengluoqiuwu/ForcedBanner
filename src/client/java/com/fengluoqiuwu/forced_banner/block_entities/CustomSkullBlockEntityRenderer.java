@@ -5,6 +5,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import java.util.Map;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.AbstractSkullBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SkullBlock;
@@ -33,7 +36,8 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationPropertyHelper;
 import org.jetbrains.annotations.Nullable;
 
-class CustomSkullBlockEntityRenderer implements BlockEntityRenderer<SkullBlockEntity> {
+@Environment(EnvType.CLIENT)
+public class CustomSkullBlockEntityRenderer implements BlockEntityRenderer<SkullBlockEntity> {
     private final Map<SkullBlock.SkullType, SkullBlockEntityModel> MODELS;
     private static final Map<SkullBlock.SkullType, Identifier> TEXTURES = (Map)Util.make(Maps.newHashMap(), (map) -> {
         map.put(Type.SKELETON, new Identifier("textures/entity/skeleton/skeleton.png"));
