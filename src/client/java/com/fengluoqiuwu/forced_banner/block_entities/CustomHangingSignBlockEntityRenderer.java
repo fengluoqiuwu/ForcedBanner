@@ -41,46 +41,52 @@ public class CustomHangingSignBlockEntityRenderer extends CustomSignBlockEntityR
     private static final String BOARD = "board";
     private static final float MODEL_SCALE = 1.0F;
     private static final float TEXT_SCALE = 0.9F;
-    private static final Vec3d TEXT_OFFSET = new Vec3d((double)0.0F, (double)-0.32F, (double)0.073F);
-    private final Map<WoodType, net.minecraft.client.render.block.entity.HangingSignBlockEntityRenderer.HangingSignModel> MODELS;
+    private static final Vec3d TEXT_OFFSET = new Vec3d(0.0, -0.32F, 0.073F);
+    private final Map<WoodType, CustomHangingSignBlockEntityRenderer.HangingSignModel> models;
 
     public CustomHangingSignBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
         super(context);
-        this.MODELS = (Map)WoodType.stream().collect(ImmutableMap.toImmutableMap((woodType) -> woodType, (type) -> new net.minecraft.client.render.block.entity.HangingSignBlockEntityRenderer.HangingSignModel(context.getLayerModelPart(EntityModelLayers.createHangingSign(type)))));
+        this.models = (Map<WoodType, CustomHangingSignBlockEntityRenderer.HangingSignModel>)WoodType.stream()
+                .collect(
+                        ImmutableMap.toImmutableMap(
+                                woodType -> woodType, type -> new CustomHangingSignBlockEntityRenderer.HangingSignModel(context.getLayerModelPart(EntityModelLayers.createHangingSign(type)))
+                        )
+                );
     }
 
+    @Override
     public float getSignScale() {
         return 1.0F;
     }
 
+    @Override
     public float getTextScale() {
         return 0.9F;
     }
 
+    @Override
     public void render(SignBlockEntity signBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j) {
         BlockState blockState = signBlockEntity.getCachedState();
         AbstractSignBlock abstractSignBlock = (AbstractSignBlock)blockState.getBlock();
         WoodType woodType = AbstractSignBlock.getWoodType(abstractSignBlock);
-        net.minecraft.client.render.block.entity.HangingSignBlockEntityRenderer.HangingSignModel hangingSignModel = (net.minecraft.client.render.block.entity.HangingSignBlockEntityRenderer.HangingSignModel)this.MODELS.get(woodType);
+        CustomHangingSignBlockEntityRenderer.HangingSignModel hangingSignModel = (CustomHangingSignBlockEntityRenderer.HangingSignModel)this.models.get(woodType);
         hangingSignModel.updateVisibleParts(blockState);
         this.render(signBlockEntity, matrixStack, vertexConsumerProvider, i, j, blockState, abstractSignBlock, woodType, hangingSignModel);
     }
 
+    @Override
     void setAngles(MatrixStack matrices, float rotationDegrees, BlockState state) {
-        matrices.translate((double)0.5F, (double)0.9375F, (double)0.5F);
+        matrices.translate(0.5, 0.9375, 0.5);
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(rotationDegrees));
         matrices.translate(0.0F, -0.3125F, 0.0F);
     }
 
-    void renderSignModel(MatrixStack matrices, int light, int overlay, Model model, VertexConsumer vertexConsumers) {
-        net.minecraft.client.render.block.entity.HangingSignBlockEntityRenderer.HangingSignModel hangingSignModel = (net.minecraft.client.render.block.entity.HangingSignBlockEntityRenderer.HangingSignModel)model;
-        hangingSignModel.root.render(matrices, vertexConsumers, light, overlay);
-    }
-
+    @Override
     SpriteIdentifier getTextureId(WoodType signType) {
         return TexturedRenderLayers.getHangingSignTextureId(signType);
     }
 
+    @Override
     Vec3d getTextOffset() {
         return TEXT_OFFSET;
     }
@@ -91,24 +97,38 @@ public class CustomHangingSignBlockEntityRenderer extends CustomSignBlockEntityR
         modelPartData.addChild("board", ModelPartBuilder.create().uv(0, 12).cuboid(-7.0F, 0.0F, -1.0F, 14.0F, 10.0F, 2.0F), ModelTransform.NONE);
         modelPartData.addChild("plank", ModelPartBuilder.create().uv(0, 0).cuboid(-8.0F, -6.0F, -2.0F, 16.0F, 2.0F, 4.0F), ModelTransform.NONE);
         ModelPartData modelPartData2 = modelPartData.addChild("normalChains", ModelPartBuilder.create(), ModelTransform.NONE);
-        modelPartData2.addChild("chainL1", ModelPartBuilder.create().uv(0, 6).cuboid(-1.5F, 0.0F, 0.0F, 3.0F, 6.0F, 0.0F), ModelTransform.of(-5.0F, -6.0F, 0.0F, 0.0F, (-(float)Math.PI / 4F), 0.0F));
-        modelPartData2.addChild("chainL2", ModelPartBuilder.create().uv(6, 6).cuboid(-1.5F, 0.0F, 0.0F, 3.0F, 6.0F, 0.0F), ModelTransform.of(-5.0F, -6.0F, 0.0F, 0.0F, ((float)Math.PI / 4F), 0.0F));
-        modelPartData2.addChild("chainR1", ModelPartBuilder.create().uv(0, 6).cuboid(-1.5F, 0.0F, 0.0F, 3.0F, 6.0F, 0.0F), ModelTransform.of(5.0F, -6.0F, 0.0F, 0.0F, (-(float)Math.PI / 4F), 0.0F));
-        modelPartData2.addChild("chainR2", ModelPartBuilder.create().uv(6, 6).cuboid(-1.5F, 0.0F, 0.0F, 3.0F, 6.0F, 0.0F), ModelTransform.of(5.0F, -6.0F, 0.0F, 0.0F, ((float)Math.PI / 4F), 0.0F));
+        modelPartData2.addChild(
+                "chainL1",
+                ModelPartBuilder.create().uv(0, 6).cuboid(-1.5F, 0.0F, 0.0F, 3.0F, 6.0F, 0.0F),
+                ModelTransform.of(-5.0F, -6.0F, 0.0F, 0.0F, (float) (-Math.PI / 4), 0.0F)
+        );
+        modelPartData2.addChild(
+                "chainL2",
+                ModelPartBuilder.create().uv(6, 6).cuboid(-1.5F, 0.0F, 0.0F, 3.0F, 6.0F, 0.0F),
+                ModelTransform.of(-5.0F, -6.0F, 0.0F, 0.0F, (float) (Math.PI / 4), 0.0F)
+        );
+        modelPartData2.addChild(
+                "chainR1",
+                ModelPartBuilder.create().uv(0, 6).cuboid(-1.5F, 0.0F, 0.0F, 3.0F, 6.0F, 0.0F),
+                ModelTransform.of(5.0F, -6.0F, 0.0F, 0.0F, (float) (-Math.PI / 4), 0.0F)
+        );
+        modelPartData2.addChild(
+                "chainR2",
+                ModelPartBuilder.create().uv(6, 6).cuboid(-1.5F, 0.0F, 0.0F, 3.0F, 6.0F, 0.0F),
+                ModelTransform.of(5.0F, -6.0F, 0.0F, 0.0F, (float) (Math.PI / 4), 0.0F)
+        );
         modelPartData.addChild("vChains", ModelPartBuilder.create().uv(14, 6).cuboid(-6.0F, -6.0F, 0.0F, 12.0F, 6.0F, 0.0F), ModelTransform.NONE);
         return TexturedModelData.of(modelData, 64, 32);
     }
 
     @Environment(EnvType.CLIENT)
     public static final class HangingSignModel extends Model {
-        public final ModelPart root;
         public final ModelPart plank;
         public final ModelPart vChains;
         public final ModelPart normalChains;
 
         public HangingSignModel(ModelPart root) {
-            super(RenderLayer::getEntityCutoutNoCull);
-            this.root = root;
+            super(root, RenderLayer::getEntityCutoutNoCull);
             this.plank = root.getChild("plank");
             this.normalChains = root.getChild("normalChains");
             this.vChains = root.getChild("vChains");
@@ -120,15 +140,10 @@ public class CustomHangingSignBlockEntityRenderer extends CustomSignBlockEntityR
             this.vChains.visible = false;
             this.normalChains.visible = true;
             if (!bl) {
-                boolean bl2 = (Boolean) state.get(Properties.ATTACHED);
+                boolean bl2 = (Boolean)state.get(Properties.ATTACHED);
                 this.normalChains.visible = !bl2;
                 this.vChains.visible = bl2;
             }
-
-        }
-
-        public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
-            this.root.render(matrices, vertices, light, overlay, color);
         }
     }
 }

@@ -6,6 +6,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
+import net.minecraft.client.model.Model;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.TexturedRenderLayers;
@@ -14,7 +15,6 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
-import net.minecraft.client.render.entity.model.ShulkerEntityModel;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.DyeColor;
@@ -22,10 +22,10 @@ import net.minecraft.util.math.Direction;
 
 @Environment(EnvType.CLIENT)
 public class CustomShulkerBoxBlockEntityRenderer implements BlockEntityRenderer<ShulkerBoxBlockEntity> {
-    private final ShulkerEntityModel<?> model;
+    private final CustomShulkerBoxBlockEntityRenderer.ShulkerBoxBlockModel model;
 
     public CustomShulkerBoxBlockEntityRenderer(BlockEntityRendererFactory.Context ctx) {
-        this.model = new ShulkerEntityModel(ctx.getLayerModelPart(EntityModelLayers.SHULKER));
+        this.model = new CustomShulkerBoxBlockEntityRenderer.ShulkerBoxBlockModel(ctx.getLayerModelPart(EntityModelLayers.SHULKER_BOX));
     }
 
     public void render(ShulkerBoxBlockEntity shulkerBoxBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j) {
@@ -52,12 +52,25 @@ public class CustomShulkerBoxBlockEntityRenderer implements BlockEntityRenderer<
         matrixStack.multiply(direction.getRotationQuaternion());
         matrixStack.scale(1.0F, -1.0F, -1.0F);
         matrixStack.translate(0.0F, -1.0F, 0.0F);
-        ModelPart modelPart = this.model.getLid();
-        modelPart.setPivot(0.0F, 24.0F - shulkerBoxBlockEntity.getAnimationProgress(f) * 0.5F * 16.0F, 0.0F);
-        modelPart.yaw = 270.0F * shulkerBoxBlockEntity.getAnimationProgress(f) * ((float)Math.PI / 180F);
-        VertexConsumer vertexConsumer = spriteIdentifier.getVertexConsumer(vertexConsumerProvider, RenderLayer::getEntityCutoutNoCull);
+        this.model.animateLid(shulkerBoxBlockEntity, f);
+        VertexConsumer vertexConsumer = spriteIdentifier.getVertexConsumer(vertexConsumerProvider, this.model::getLayer);
         this.model.render(matrixStack, vertexConsumer, i, j);
         matrixStack.pop();
+    }
+
+    @Environment(EnvType.CLIENT)
+    static class ShulkerBoxBlockModel extends Model {
+        private final ModelPart lid;
+
+        public ShulkerBoxBlockModel(ModelPart root) {
+            super(root, RenderLayer::getEntityCutoutNoCull);
+            this.lid = root.getChild("lid");
+        }
+
+        public void animateLid(ShulkerBoxBlockEntity blockEntity, float delta) {
+            this.lid.setPivot(0.0F, 24.0F - blockEntity.getAnimationProgress(delta) * 0.5F * 16.0F, 0.0F);
+            this.lid.yaw = 270.0F * blockEntity.getAnimationProgress(delta) * (float) (Math.PI / 180.0);
+        }
     }
 
     @Override

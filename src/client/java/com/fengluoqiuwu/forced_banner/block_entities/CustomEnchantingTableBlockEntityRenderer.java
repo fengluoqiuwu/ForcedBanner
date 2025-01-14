@@ -20,25 +20,30 @@ import net.minecraft.util.math.RotationAxis;
 
 @Environment(EnvType.CLIENT)
 public class CustomEnchantingTableBlockEntityRenderer implements BlockEntityRenderer<EnchantingTableBlockEntity> {
-    public static final SpriteIdentifier BOOK_TEXTURE;
+    public static final SpriteIdentifier BOOK_TEXTURE = new SpriteIdentifier(
+            SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, Identifier.ofVanilla("entity/enchanting_table_book")
+    );
     private final BookModel book;
 
     public CustomEnchantingTableBlockEntityRenderer(BlockEntityRendererFactory.Context ctx) {
         this.book = new BookModel(ctx.getLayerModelPart(EntityModelLayers.BOOK));
     }
 
-    public void render(EnchantingTableBlockEntity enchantingTableBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j) {
+    public void render(
+            EnchantingTableBlockEntity enchantingTableBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j
+    ) {
         matrixStack.push();
         matrixStack.translate(0.5F, 0.75F, 0.5F);
         float g = (float)enchantingTableBlockEntity.ticks + f;
         matrixStack.translate(0.0F, 0.1F + MathHelper.sin(g * 0.1F) * 0.01F, 0.0F);
+        float h = enchantingTableBlockEntity.bookRotation - enchantingTableBlockEntity.lastBookRotation;
 
-        float h;
-        for(h = enchantingTableBlockEntity.bookRotation - enchantingTableBlockEntity.lastBookRotation; h >= (float)Math.PI; h -= ((float)Math.PI * 2F)) {
+        while (h >= (float) Math.PI) {
+            h -= (float) (Math.PI * 2);
         }
 
-        while(h < -(float)Math.PI) {
-            h += ((float)Math.PI * 2F);
+        while (h < (float) -Math.PI) {
+            h += (float) (Math.PI * 2);
         }
 
         float k = enchantingTableBlockEntity.lastBookRotation + h * f;
@@ -50,17 +55,13 @@ public class CustomEnchantingTableBlockEntityRenderer implements BlockEntityRend
         float o = MathHelper.lerp(f, enchantingTableBlockEntity.pageTurningSpeed, enchantingTableBlockEntity.nextPageTurningSpeed);
         this.book.setPageAngles(g, MathHelper.clamp(m, 0.0F, 1.0F), MathHelper.clamp(n, 0.0F, 1.0F), o);
         VertexConsumer vertexConsumer = BOOK_TEXTURE.getVertexConsumer(vertexConsumerProvider, RenderLayer::getEntitySolid);
-        this.book.renderBook(matrixStack, vertexConsumer, i, j, -1);
+        this.book.render(matrixStack, vertexConsumer, i, j);
         matrixStack.pop();
     }
 
     @Override
     public int getRenderDistance() {
         return Config.isModEnabled() ? Config.getRenderDistance() : 64;
-    }
-
-    static {
-        BOOK_TEXTURE = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, Identifier.ofVanilla("entity/enchanting_table_book"));
     }
 }
 

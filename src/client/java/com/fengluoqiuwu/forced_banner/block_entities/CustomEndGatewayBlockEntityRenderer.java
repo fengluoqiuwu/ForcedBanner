@@ -24,9 +24,11 @@ public class CustomEndGatewayBlockEntityRenderer extends EndPortalBlockEntityRen
 
     public void render(EndGatewayBlockEntity endGatewayBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j) {
         if (endGatewayBlockEntity.isRecentlyGenerated() || endGatewayBlockEntity.needsCooldownBeforeTeleporting()) {
-            float g = endGatewayBlockEntity.isRecentlyGenerated() ? endGatewayBlockEntity.getRecentlyGeneratedBeamHeight(f) : endGatewayBlockEntity.getCooldownBeamHeight(f);
-            double d = endGatewayBlockEntity.isRecentlyGenerated() ? (double)endGatewayBlockEntity.getWorld().getTopY() : (double)50.0F;
-            g = MathHelper.sin(g * (float)Math.PI);
+            float g = endGatewayBlockEntity.isRecentlyGenerated()
+                    ? endGatewayBlockEntity.getRecentlyGeneratedBeamHeight(f)
+                    : endGatewayBlockEntity.getCooldownBeamHeight(f);
+            double d = endGatewayBlockEntity.isRecentlyGenerated() ? (double)endGatewayBlockEntity.getWorld().getTopYInclusive() : 50.0;
+            g = MathHelper.sin(g * (float) Math.PI);
             int k = MathHelper.floor((double)g * d);
             int l = endGatewayBlockEntity.isRecentlyGenerated() ? DyeColor.MAGENTA.getEntityColor() : DyeColor.PURPLE.getEntityColor();
             long m = endGatewayBlockEntity.getWorld().getTime();
@@ -36,14 +38,17 @@ public class CustomEndGatewayBlockEntityRenderer extends EndPortalBlockEntityRen
         super.render(endGatewayBlockEntity, f, matrixStack, vertexConsumerProvider, i, j);
     }
 
+    @Override
     protected float getTopYOffset() {
         return 1.0F;
     }
 
+    @Override
     protected float getBottomYOffset() {
         return 0.0F;
     }
 
+    @Override
     protected RenderLayer getLayer() {
         return RenderLayer.getEndGateway();
     }
