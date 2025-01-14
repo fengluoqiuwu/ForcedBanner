@@ -12,7 +12,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
-import net.minecraft.world.MobSpawnerLogic;
+import net.minecraft.world.World;
 
 @Environment(EnvType.CLIENT)
 public class CustomMobSpawnerBlockEntityRenderer implements BlockEntityRenderer<MobSpawnerBlockEntity> {
@@ -23,26 +23,33 @@ public class CustomMobSpawnerBlockEntityRenderer implements BlockEntityRenderer<
     }
 
     public void render(MobSpawnerBlockEntity mobSpawnerBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j) {
-        matrixStack.push();
-        matrixStack.translate(0.5F, 0.0F, 0.5F);
-        MobSpawnerLogic mobSpawnerLogic = mobSpawnerBlockEntity.getLogic();
-        Entity entity = mobSpawnerLogic.getRenderedEntity(mobSpawnerBlockEntity.getWorld(), mobSpawnerBlockEntity.getWorld().getRandom(), mobSpawnerBlockEntity.getPos());
-        if (entity != null) {
-            float g = 0.53125F;
-            float h = Math.max(entity.getWidth(), entity.getHeight());
-            if ((double)h > (double)1.0F) {
-                g /= h;
+        World world = mobSpawnerBlockEntity.getWorld();
+        if (world != null) {
+            net.minecraft.block.spawner.MobSpawnerLogic mobSpawnerLogic = mobSpawnerBlockEntity.getLogic();
+            Entity entity = mobSpawnerLogic.getRenderedEntity(world, mobSpawnerBlockEntity.getPos());
+            if (entity != null) {
+                render(f, matrixStack, vertexConsumerProvider, i, entity, this.entityRenderDispatcher, mobSpawnerLogic.getLastRotation(), mobSpawnerLogic.getRotation());
             }
 
-            matrixStack.translate(0.0F, 0.4F, 0.0F);
-            matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)MathHelper.lerp((double)f, mobSpawnerLogic.getLastRotation(), mobSpawnerLogic.getRotation()) * 10.0F));
-            matrixStack.translate(0.0F, -0.2F, 0.0F);
-            matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-30.0F));
-            matrixStack.scale(g, g, g);
-            this.entityRenderDispatcher.render(entity, (double)0.0F, (double)0.0F, (double)0.0F, 0.0F, f, matrixStack, vertexConsumerProvider, i);
+        }
+    }
+
+    public static void render(float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, Entity entity, EntityRenderDispatcher entityRenderDispatcher, double lastRotation, double rotation) {
+        matrices.push();
+        matrices.translate(0.5F, 0.0F, 0.5F);
+        float f = 0.53125F;
+        float g = Math.max(entity.getWidth(), entity.getHeight());
+        if ((double)g > (double)1.0F) {
+            f /= g;
         }
 
-        matrixStack.pop();
+        matrices.translate(0.0F, 0.4F, 0.0F);
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)MathHelper.lerp((double)tickDelta, lastRotation, rotation) * 10.0F));
+        matrices.translate(0.0F, -0.2F, 0.0F);
+        matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-30.0F));
+        matrices.scale(f, f, f);
+        entityRenderDispatcher.render(entity, (double)0.0F, (double)0.0F, (double)0.0F, 0.0F, tickDelta, matrices, vertexConsumers, light);
+        matrices.pop();
     }
 
     @Override
